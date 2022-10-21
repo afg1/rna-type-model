@@ -1,6 +1,6 @@
-from python:3.9-alpine
+from python:3.9-bullseye
 
-run apk add rust cargo g++
+run apt install -y rust cargo g++
 copy . /rna_type_model
 
 run pip install polars pandas scikit-learn obonet click numpy snorkel
