@@ -7,9 +7,9 @@ name: Building Containers
 on:
  push:
   branches:
-   'master'
-jobs:
+    'master'
 
+jobs:
   create-docker-image:
     runs-on: ubuntu-latest
     steps:
