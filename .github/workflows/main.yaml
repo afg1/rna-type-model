@@ -1,0 +1,28 @@
+# Thid workflow will build and push the import pipeline container.
+# the plan later will be to include unit tests as well
+
+
+name: Building Containers
+
+on:
+ push:
+  branches:
+   'master'
+jobs:
+
+  create-docker-image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: docker login
+        env:
+          DOCKER_USER: ${{ secrets.DOCKER_USER }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        run: docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
+
+      - name: docker build
+        run: docker build -f Dockerfile -t afgreen/rna-type-models .
+
+      - name: docker push
+        run: docker push afgreen/rna-type-models
