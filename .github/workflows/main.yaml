@@ -26,3 +26,22 @@ jobs:
 
       - name: docker push
         run: docker push afgreen/rna-type-models
+
+  convert-to-singularity:
+    needs: create-docker-image
+    name: "Pull docker image and convert"
+    runs-on: ubuntu-latest
+
+    container:
+      image: quay.io/singularity/singularity:v3.8.1
+      options: --privileged
+
+    steps:
+      - name: "Pull image"
+        run: |
+          singularity pull  --name rna-type-models.sif docker://afgreen/rna-type-models:latest
+
+      - name: "Push to ghcr"
+        run: |
+          echo ${{ secrets.GITHUB_TOKEN }} | singularity remote login -u ${{ secrets.GHCR_USERNAME }} --password-stdin oras://ghcr.io
+          singularity push rna-type-models-latest.sif oras://ghcr.io/${GITHUB_REPOSITORY}:latest
