@@ -7,63 +7,68 @@ import click
 import numpy as np
 
 
-so = obonet.read_obo("https://raw.githubusercontent.com/The-Sequence-Ontology/SO-Ontologies/master/Ontology_Files/so-simple.obo")
+so = obonet.read_obo(
+    "https://raw.githubusercontent.com/The-Sequence-Ontology/SO-Ontologies/master/Ontology_Files/so-simple.obo"
+)
 
 base_so_terms = ["SO:0000655", "SO:0000188", "SO:0000836", "SO:0000673"]
 
 
 # print(nx.shortest_path(so, "SO:0000647", "SO:0000655") )
 
+
 @click.command()
-@click.argument("db_dump", type=click.File("r"))
-def load_and_split(db_dump):
-    if db_dump.name.endswith("csv"):
-        all_data = pl.read_csv(db_dump.name)
-    elif db_dump.name.endswith("parquet"):
-        all_data = pl.read_parquet(db_dump.name)
-    print(all_data.shape, all_data.height, all_data.columns)
+@click.argument("grouped_data", type=click.File("r"))
+@click.option("--rng_seed", type=int)
+def load_and_split(grouped_data, rng_seed=1234):
+    """
+    Load grouped parquet data and split it into train and test sets.
 
-    grouped = all_data.groupby(["upi"]).agg_list()
+    Try to extract the 'trusted' data and mix it into the train and test datasets equally
 
-    train_test = pl.from_numpy((np.random.uniform(size=grouped.height) > 0.75).astype(np.int32), columns=["test"])
+    """
+    print("Loading pre-grouped data to split for train and test")
+    rng = np.random.default_rng(rng_seed)
+    print(f"Supplied random seed: {rng_seed}")
 
-    print(train_test.height)
+    all_data = pl.scan_parquet(grouped_data.name)
+    trusted_ids = [4, 8, 16, 18, 20, 24, 37]
 
-    grouped = grouped.with_column(train_test.select(pl.col("test")).to_series().alias("test") )
+    all_data = all_data.with_column(pl.col("dbid").is_in(trusted_ids).alias("trusted"))
 
-    train_data = grouped.filter(pl.col("test") == 0).drop("test")
+    trusted_data = all_data.filter(pl.col("trusted")).collect()
+    trusted_train_test = pl.from_numpy(
+        (rng.random(size=trusted_data.height) > 0.75), columns=["test"]
+    )
+    trusted_data = trusted_data.with_column(
+        trusted_train_test.select(pl.col("test")).to_series().alias("test")
+    )
 
-    test_data = grouped.filter(pl.col("test") == 1).drop("test")
+    remaining_data = all_data.filter(pl.col("trusted").is_not()).collect()
+    remaining_train_test = pl.from_numpy(
+        (rng.random(size=remaining_data.height) > 0.75), columns=["test"]
+    )
+    remaining_data = remaining_data.with_column(
+        remaining_train_test.select(pl.col("test")).to_series().alias("test")
+    )
 
-    print(train_data)
+    trusted_data_train = trusted_data.filter(pl.col("test").is_not())
+    trusted_data_test = trusted_data.filter(pl.col("test"))
 
+    remaining_data_train = remaining_data.filter(pl.col("test").is_not())
+    remaining_data_test = remaining_data.filter(pl.col("test"))
 
-    # trustworthy_ids = [4, 8, 16, 18, 20, 24, 37]
-    # trustworthy_accessions = all_data.loc[all_data["dbid"].isin(trustworthy_ids)]
-    # trustworthy_data = all_data.loc[all_data["upi"].isin(trustworthy_accessions["upi"])]
+    train_data = trusted_data_train.vstack(remaining_data_train)
+    test_data = trusted_data_test.vstack(remaining_data_test)
 
-    # print(trustworthy_data.shape)
-
-    # available_training_data = all_data.drop(all_data[all_data["upi"].isin(trustworthy_accessions['upi']) ].index  )
-
-    # print(available_training_data.shape)
-
-    # ## groupby UPI and aggregate all other values into lists
-    # # grouped = available_training_data.groupby("upi").agg(list)    
-
-    # ## Now split the grouped df to train & test
-
-    # train_data, test_data = train_test_split(available_training_data, test_size=0.25, random_state=123345)
-
+    print("Data split completed, writing parquet")
 
     test_data.write_parquet("test_data.parquet")
     train_data.write_parquet("train_data.parquet")
 
-
-
+    print("Double check below, the two numbers should be equal")
+    print(test_data.height + train_data.height, all_data.collect().height)
 
 
 if __name__ == "__main__":
     load_and_split()
-
-
