@@ -44,4 +44,4 @@ jobs:
       - name: "Push to ghcr"
         run: |
           echo ${{ secrets.GITHUB_TOKEN }} | singularity remote login -u ${{ secrets.GHCR_USERNAME }} --password-stdin oras://ghcr.io
-          singularity push rna-type-models-latest.sif oras://ghcr.io/${GITHUB_REPOSITORY}:latest
+          singularity push rna-type-models.sif oras://ghcr.io/${GITHUB_REPOSITORY}:latest
