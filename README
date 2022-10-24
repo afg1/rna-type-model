@@ -1,0 +1,7 @@
+## RNA type labelling
+
+This repo has the code and associated docker/singularity images to run a heuristic labelling model over RNAcentral data.
+
+We use the snorkel library, which builds a probabilistic model based on a set of labelling functions to heuristically label entries. This should be better than using the heuristics directly, which is (more or less) what happens now.
+
+The whole thing is packaged into a nextflow pipeline, so it should in theory be reproducible.
