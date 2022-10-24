@@ -1,3 +1,5 @@
+# /usr/bin/env python
+
 import pandas as pd
 import polars as pl
 from sklearn.model_selection import train_test_split

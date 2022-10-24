@@ -1,6 +1,7 @@
+#!/usr/bin/env python
+
 import polars as pl
 import click
-
 
 
 @click.command()
@@ -11,7 +12,7 @@ def group_by(ungrouped_parquet, column, output_parquet):
     """
     Read a parquet version of the database dump and group it by the specified column
 
-    I would have liked to do this with 
+    I would have liked to do this with
     """
     print(f"Reading and grouping by {column}... ")
     data = pl.read_parquet(ungrouped_parquet).groupby(column).agg_list()
@@ -22,7 +23,5 @@ def group_by(ungrouped_parquet, column, output_parquet):
     print("Done!")
 
 
-
 if __name__ == "__main__":
     group_by()
-
