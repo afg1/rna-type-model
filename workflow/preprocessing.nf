@@ -36,8 +36,8 @@ process preprocess_data
         path(grouped_data)
 
     output:
-        path('train_data.parquet')
-        path('test_data.parquet')
+        path('train_data.parquet'), emit: train
+        path('test_data.parquet'), emit: test
 
     script:
     """

@@ -4,7 +4,6 @@ process run_heuristic_labeller {
 
     output:
         path('L_train.npy')
-        path('L_test.npy')
         path(parquet)
 
     script:
