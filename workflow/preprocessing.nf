@@ -41,6 +41,7 @@ process preprocess_data
 
     script:
     """
+    wget "https://raw.githubusercontent.com/The-Sequence-Ontology/SO-Ontologies/master/Ontology_Files/so-simple.obo"
     load_and_split_data $grouped_data --rng 20221021
     """
 }

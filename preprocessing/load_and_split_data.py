@@ -1,22 +1,16 @@
-# /usr/bin/env python
+#!/usr/bin/env python
 
 import pandas as pd
 import polars as pl
-from sklearn.model_selection import train_test_split
 import networkx as nx
 import obonet
 import click
 import numpy as np
 
 
-so = obonet.read_obo(
-    "https://raw.githubusercontent.com/The-Sequence-Ontology/SO-Ontologies/master/Ontology_Files/so-simple.obo"
-)
+so = obonet.read_obo("so-simple.obo")
 
 base_so_terms = ["SO:0000655", "SO:0000188", "SO:0000836", "SO:0000673"]
-
-
-# print(nx.shortest_path(so, "SO:0000647", "SO:0000655") )
 
 
 @click.command()
