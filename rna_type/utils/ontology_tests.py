@@ -3,11 +3,11 @@ import networkx as nx
 
 import obonet
 
-SO_GRAPH = obonet.read_obo("./utils/so-simple.obo")
+SO_GRAPH = obonet.read_obo("./rna_type/utils/so.obo")
 
 BASE_SO_TERMS = ["SO:0000655", "SO:0000188", "SO:0000836", "SO:0000673"]
 
-NCBI_GRAPH = obonet.read_obo("./utils/ncbitaxon.obo")
+NCBI_GRAPH = obonet.read_obo("./rna_type/utils/ncbitaxon.obo")
 
 
 def specificity(term: str) -> int:
