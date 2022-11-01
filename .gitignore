@@ -1,6 +1,10 @@
 data/*
+bin/*
 .nextflow*
 work/*
 **/*.parquet
 **/*.joblib
 **/*.npy
+**/*.obo
+**/*.pyc
+**/.DS_Store
