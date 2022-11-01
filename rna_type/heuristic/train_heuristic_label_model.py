@@ -3,8 +3,9 @@ import click
 import pandas as pd
 import polars as pl
 import numpy as np
-from labelling.labels import RNATypeCoarse
+from rna_type.labelling.labels import RNATypeCoarse
 from snorkel.labeling.model import LabelModel
+import joblib
 
 
 @click.command()
@@ -27,3 +28,9 @@ def train_heuristic_label_model(train_data, train_labels):
 
     df_train = df[df.label != RNATypeCoarse.abstain]
     df_train.to_parquet("LF_labelled_train_data.parquet")
+
+    joblib.dump(label_model, "heuristic_LM.joblib")
+
+
+if __name__ == "__main__":
+    train_heuristic_label_model()

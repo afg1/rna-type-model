@@ -28,11 +28,9 @@ def load_and_split(grouped_data, rng_seed=1234):
     print(f"Supplied random seed: {rng_seed}")
 
     all_data = pl.scan_parquet(grouped_data.name)
-    trusted_ids = [4, 8, 16, 18, 20, 24, 37]
 
-    all_data = all_data.with_column(pl.col("dbid").is_in(trusted_ids).alias("trusted"))
-
-    trusted_data = all_data.filter(pl.col("trusted")).collect()
+    print(all_data.collect())
+    trusted_data = all_data.filter(pl.col("contains_trusted")).collect()
     trusted_train_test = pl.from_numpy(
         (rng.random(size=trusted_data.height) > 0.75), columns=["test"]
     )
@@ -40,7 +38,7 @@ def load_and_split(grouped_data, rng_seed=1234):
         trusted_train_test.select(pl.col("test")).to_series().alias("test")
     )
 
-    remaining_data = all_data.filter(pl.col("trusted").is_not()).collect()
+    remaining_data = all_data.filter(pl.col("contains_trusted").is_not()).collect()
     remaining_train_test = pl.from_numpy(
         (rng.random(size=remaining_data.height) > 0.75), columns=["test"]
     )

@@ -19,6 +19,6 @@ left join rnc_secondary_structure_layout layout on layout.urs = xref.upi
 JOIN rnc_secondary_structure_layout_models models ON models.id = layout.model_id
 LEFT JOIN rfam_model_hits hits on hits.upi = xref.upi
 LEFT JOIN rfam_models rfam ON rfam.rfam_model_id = hits.rfam_model_id
-where 
+where
   xref.deleted = 'N')
 TO STDOUT with CSV DELIMITER ',' HEADER;
