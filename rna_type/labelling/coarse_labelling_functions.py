@@ -23,7 +23,11 @@ def score_based(x):
     function in the ifs
     """
 
-    score = [float(s) for s in x["score"]]
+    try:
+        score = [float(s) for s in x["score"]]
+    except ValueError:
+        print(x)
+        raise ValueError
     if any([s > 500 for s in score]):
         return RNATypeCoarse.tRNA
     elif any([s < 500 for s in score]):
@@ -58,7 +62,9 @@ def accession_based(x):
     ## If more than one, look at  whether they agree
     else:
         trusted_ids = list(set(trusted).intersection(set(x["dbid"])))
-        rna_types = x["ac_rna_type"][np.where(x["dbid"] == trusted_ids)]
+        rna_types = x["ac_rna_type"][
+            np.where([db == tr for db, tr in zip(x["dbid"], trusted_ids)])
+        ]
 
         rRNA_agreement = [is_child_of("SO:0000252", t) for t in rna_types]
         tRNA_agreement = [is_child_of("SO:0000253", t) for t in rna_types]
@@ -72,6 +78,70 @@ def accession_based(x):
         elif all(tRNA_agreement):
             return RNATypeCoarse.tRNA
         elif all(other_aggreement):
+            return RNATypeCoarse.other
+        else:
+            return RNATypeCoarse.abstain
+
+
+@labeling_function()
+def passthrough(x):
+    """
+    If a URS only has one accession, just pass through the type of it without anything fancy, else abstain
+
+    Equivalent to the first test in the current type determination
+    """
+    if len(x["dbid"] == 1):
+        rna_type = x["ac_rna_type"][0]
+        if is_child_of("SO:0000252", rna_type):  ## rRNA
+            return RNATypeCoarse.rRNA
+        elif is_child_of("SO:0000253", rna_type):  ## tRNA
+            return RNATypeCoarse.tRNA
+        else:
+            return RNATypeCoarse.other
+
+    else:
+        return RNATypeCoarse.abstain
+
+
+@labeling_function()
+def is_lncRNA(x):
+    """
+    Return other if we have an accession that says its a lncRNA and that accession comes from somewhere sensible
+
+    Sensible = DBs that measure expression, DBs that deal only with lncRNA, DBs that link to literature
+    (so Expression Atlas, PLncDB, GeneCards, MalaCards, IntAct, LncBook, maybe others?)
+    """
+    lnc_trusted = [51, 50, 33, 40, 41, 42]
+    n_trusted = len(set(lnc_trusted).intersection(set(x["dbid"])))
+    if n_trusted == 0:
+        return RNATypeCoarse.abstain
+    else:
+        rna_types = x["ac_rna_type"][
+            np.where([db == tr for db, tr in zip(x["dbid"], lnc_trusted)])
+        ]
+        if "SO:0001877" in rna_types:
+            return RNATypeCoarse.other
+        else:
+            return RNATypeCoarse.abstain
+
+
+@labeling_function()
+def is_miRNA(x):
+    """
+    Return other if we have an accession that says its a miRNA and that accession comes from somewhere sensible
+
+    Sensible = DBs that measure expression, DBs that deal only with lncRNA, DBs that link to literature
+    (so Expression Atlas, miRbase, GeneCards, MalaCards, IntAct, LncBook, maybe others?)
+    """
+    mi_trusted = [51, 4, 33, 40, 41, 42]
+    n_trusted = len(set(mi_trusted).intersection(set(x["dbid"])))
+    if n_trusted == 0:
+        return RNATypeCoarse.abstain
+    else:
+        rna_types = x["ac_rna_type"][
+            np.where([db == tr for db, tr in zip(x["dbid"], mi_trusted)])
+        ]
+        if "SO:0000276" in rna_types:
             return RNATypeCoarse.other
         else:
             return RNATypeCoarse.abstain
@@ -97,9 +167,11 @@ def length_based(x):
     This will for sure mislabel miRNAs and other short things, so we would need a counter example
     """
     if all([l < 100 for l in x["sequence_stop"]]) and all(
-        [l > 50 for l in x["sequence_stop"]]
+        [l > 35 for l in x["sequence_stop"]]
     ):
         return RNATypeCoarse.tRNA
+    elif all([l <= 35 for l in x["sequence_stop"]]):
+        return RNATypeCoarse.other
     else:
         return RNATypeCoarse.abstain
 
