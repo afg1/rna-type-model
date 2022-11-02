@@ -1,6 +1,6 @@
 import polars as pl
-import click
 import numpy as np
+import gzip as gz
 
 
 def split_into(input_name, output_dir, chunks):
@@ -22,5 +22,18 @@ def split_into(input_name, output_dir, chunks):
         df_slice.write_parquet(f"{output_path}")
 
 
-if __name__ == "__main__":
-    split_into()
+def combine_from(output_file, input_files):
+    """
+    Combine many numpy labels into one
+
+    Sort the filenames first to ensure correct ordering!
+    """
+    input_files_sorted = sorted(input_files)
+    fh = gz.GzipFile(input_files_sorted[0], "r")
+    all_labels = np.load(fh)
+    for input_file in input_files_sorted[1:]:
+        fh = gz.GzipFile(input_file, "r")
+        all_labels = np.vstack((all_labels, np.load(fh)))
+
+    ofh = gz.GzipFile(output_file, "w")
+    np.save(ofh, all_labels)
