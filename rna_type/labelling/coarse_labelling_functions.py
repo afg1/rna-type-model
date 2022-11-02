@@ -2,7 +2,7 @@
 This file defines all the label functions I can think of that will give semi decent labelling of RNA type.
 """
 
-from snorkel.labeling import labeling_function
+from snorkel.labeling import labeling_function, LabelingFunction
 
 
 from .labels import RNATypeCoarse
@@ -13,6 +13,103 @@ from rna_type.utils.ontology_tests import (
     lowest_common_ancestor,
 )
 import numpy as np
+
+RRNA = "SO:0000252"
+TRNA = "SO:0000253"
+
+DB_NAME_LOOKUP = {
+    1: "ENA",
+    2: "RFAM",
+    3: "SRPDB",
+    4: "MIRBASE",
+    5: "VEGA",
+    6: "TMRNA_WEB",
+    7: "LNCRNADB",
+    8: "GTRNADB",
+    9: "REFSEQ",
+    10: "RDP",
+    11: "PDBE",
+    12: "SNOPY",
+    13: "GREENGENES",
+    14: "TAIR",
+    15: "WORMBASE",
+    16: "SGD",
+    17: "SILVA",
+    18: "POMBASE",
+    19: "DICTYBASE",
+    20: "LNCIPEDIA",
+    21: "NONCODE",
+    22: "MODOMICS",
+    23: "HGNC",
+    24: "FLYBASE",
+    25: "ENSEMBL",
+    26: "GENCODE",
+    27: "MGI",
+    28: "RGD",
+    29: "TARBASE",
+    30: "ZWD",
+    31: "ENSEMBL_PLANTS",
+    32: "LNCBASE",
+    33: "LNCBOOK",
+    34: "ENSEMBL_METAZOA",
+    35: "ENSEMBL_PROTISTS",
+    36: "ENSEMBL_FUNGI",
+    37: "SNODB",
+    38: "5SRRNADB",
+    39: "MIRGENEDB",
+    40: "MALACARDS",
+    41: "GENECARDS",
+    42: "INTACT",
+    43: "SNORNADB",
+    44: "ZFIN",
+    45: "CRW",
+    46: "PIRBASE",
+    47: "ENSEMBL_GENCODE",
+    48: "PSICQUIC",
+    49: "RIBOVISION",
+    50: "PLNCDB",
+    51: "EXPRESSIONATLAS",
+}
+
+
+def produce_db_label(x, dbid):
+    if dbid in x["dbid"]:
+        if len(x["dbid"][x["dbid"] == dbid]) > 1:
+            ## More than 1 accession from this db - handle it
+            rna_types = x["ac_rna_type"][x["dbid"] == dbid]
+            rRNA_agreement = [is_child_of(RRNA, t) for t in rna_types]
+            tRNA_agreement = [is_child_of(TRNA, t) for t in rna_types]
+            other_agreement = [
+                not r and not t for r, t in zip(rRNA_agreement, tRNA_agreement)
+            ]
+            if all(rRNA_agreement):
+                return RNATypeCoarse.rRNA
+            elif all(tRNA_agreement):
+                return RNATypeCoarse.tRNA
+            elif all(other_agreement):
+                return RNATypeCoarse.other
+            else:
+                return RNATypeCoarse.abstain
+        else:
+            ## return the corasened accession from that DB
+            if is_child_of(RRNA, x["ac_rna_type"][x["dbid"] == dbid]):
+                return RNATypeCoarse.rRNA
+            elif is_child_of(TRNA, x["ac_rna_type"][x["dbid"] == dbid]):
+                return RNATypeCoarse.tRNA
+            else:
+                return RNATypeCoarse.other
+
+    return RNATypeCoarse.abstain
+
+
+def make_db_specific_lfs():
+    dbids = range(1, 52)  ## Right now, this will change in future
+    for dbid in dbids:
+        yield LabelingFunction(
+            name=f"db_specific_{DB_NAME_LOOKUP[dbid]}",
+            f=produce_db_label,
+            resources=dict(dbid=dbid),
+        )
 
 
 @labeling_function()
@@ -131,7 +228,7 @@ def is_miRNA(x):
     Return other if we have an accession that says its a miRNA and that accession comes from somewhere sensible
 
     Sensible = DBs that measure expression, DBs that deal only with lncRNA, DBs that link to literature
-    (so Expression Atlas, miRbase, GeneCards, MalaCards, IntAct, LncBook, maybe others?)
+    (so Expression Atlas, miRbase, GeneCards, MalaCards, IntAct, maybe others?)
     """
     mi_trusted = [51, 4, 33, 40, 41, 42]
     n_trusted = len(set(mi_trusted).intersection(set(x["dbid"])))

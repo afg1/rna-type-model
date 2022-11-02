@@ -4,13 +4,10 @@ from snorkel.labeling import PandasLFApplier, LFAnalysis
 from snorkel.labeling.apply.dask import PandasParallelLFApplier
 import polars as pl
 import numpy as np
+import gzip as gz
 
 
-@click.command()
-@click.argument("train_data")
-@click.argument("output")
-@click.option("--parallel", default=False)
-def run_heuristic_labeller(train_data, output, parallel):
+def run_heuristic_labeller(train_data, output):
     from ..labelling.coarse_labelling_functions import (
         length_based,
         score_based,
@@ -20,54 +17,38 @@ def run_heuristic_labeller(train_data, output, parallel):
         passthrough,
         is_lncRNA,
         is_miRNA,
+        make_db_specific_lfs,
     )
 
+    db_specific_lfs = list(make_db_specific_lfs())
     lfs = [
-        accession_based,
+        # accession_based,
         score_based,
         taxonomy_based_rfam,
         length_based,
         coverage_based,
-        passthrough,
+        # passthrough,
         is_lncRNA,
         is_miRNA,
     ]
+    lfs.extend(db_specific_lfs)
 
     print("Loaded label functions, preparing to apply")
-    if parallel:
-        print("Building parallel applier...")
-        applier = PandasParallelLFApplier(lfs)
-    else:
-        print("Building single-thread applier...")
-        applier = PandasLFApplier(lfs)
+    print("Building single-thread applier...")
+    applier = PandasLFApplier(lfs)
 
     print("Reading parquet")
     df = pl.read_parquet(train_data)
-    df = df.sort(pl.col("dbid").arr.lengths())
+    df = df.sort(pl.col("dbid").arr.lengths(), reverse=True)
 
     print("Starting Applier...")
-    chunk_size = 100_000_000
-    L_train = None
-    for offset in range(0, df.height):
-        print(offset)
-        df_slice = df.slice(offset * chunk_size, chunk_size)
-        L_train_slice = applier.apply(df_slice.to_pandas())
-        if offset == 0:
-            L_train = L_train_slice
-        else:
-            L_train = np.vstack((L_train, L_train_slice))
+    L_train = applier.apply(df.to_pandas())
 
-    print(L_train.shape, df.height)
-
-    # L_train = applier.apply(df)
+    output_fh = gz.GzipFile(output + ".gz", "w")
 
     print("Done, saving output")
-    np.save(output, L_train)
+    np.save(output_fh, L_train)
 
     ## Evaluate label model
     print("Label function evaluation details: ")
     print(LFAnalysis(L=L_train, lfs=lfs).lf_summary())
-
-
-if __name__ == "__main__":
-    run_heuristic_labeller()
