@@ -3,12 +3,12 @@ process run_heuristic_labeller {
         path(parquet)
 
     output:
-        path('L_train.npy')
+        path('*.gz')
         path(parquet)
 
     script:
     """
-    run_heuristic_labeller $parquet
+    rtype label heuristic $parquet $parquet.baseName
     """
 }
 
@@ -22,5 +22,33 @@ process train_label_model {
 
     """
     run_label_model_training $lf_labelled_data $parquet
+    """
+}
+
+
+process split_4_labelling {
+    input:
+        path(train_data)
+
+    output:
+        path("chunks/*")
+
+    script:
+    """
+    mkdir chunks
+    rtype label split $train_data ./chunks --chunks=$params.labelling.chunks
+    """
+}
+
+process merge_heuristic_labels {
+    input:
+        path(input_files)
+
+    output:
+        path("combined.npy.gz")
+
+    script:
+    """
+    rtype label combine combined.npy.gz $input_files
     """
 }

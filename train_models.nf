@@ -15,6 +15,6 @@ workflow {
     | preprocess_data \
     | set { data }
 
-    data.train | run_heuristic_labeller | train_label_model | set { label_model }
+   data.train | split_4_labelling | run_heuristic_labeller | collect | merge_heuristic_labels | train_label_model | set { label_model }
 
 }

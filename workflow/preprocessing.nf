@@ -11,12 +11,16 @@ process fetch_data
     script:
     """
     psql -f $data_fetch_query "$PGDATABASE" > complete_data.csv
-    convert_data complete_data.csv complete_data.parquet
+    rtype prepare convert complete_data.csv complete_data.parquet
     """
 }
 
 process group_data
 {
+    memory '32.G'
+    cpus 5
+
+
     input:
         path(ungrouped_parquet)
 
@@ -25,7 +29,7 @@ process group_data
 
     script:
     """
-    group_data $ungrouped_parquet upi grouped_data.parquet
+    rtype preprocess group-data $ungrouped_parquet upi grouped_data.parquet
     """
 }
 
@@ -42,6 +46,6 @@ process preprocess_data
     script:
     """
     wget "https://raw.githubusercontent.com/The-Sequence-Ontology/SO-Ontologies/master/Ontology_Files/so-simple.obo"
-    load_and_split_data $grouped_data --rng 20221021
+    rtype preprocess split-train-test $grouped_data --rng_seed 20221021
     """
 }
