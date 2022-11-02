@@ -6,7 +6,7 @@ from rna_type.heuristic.train_heuristic_label_model import train_heuristic_label
 @click.group("train")
 def cli():
     """
-    Commands for preparing data
+    Commands for training models
     """
 
 
