@@ -44,7 +44,7 @@ def run_heuristic_labeller(train_data, output):
     print("Starting Applier...")
     L_train = applier.apply(df.to_pandas())
 
-    output_fh = gz.GzipFile(output + ".gz", "w")
+    output_fh = gz.GzipFile(output + ".npy.gz", "w")
 
     print("Done, saving output")
     np.save(output_fh, L_train)
