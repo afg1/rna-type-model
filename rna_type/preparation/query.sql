@@ -10,7 +10,7 @@ COPY(
   models.so_term_id as r2dt_model_rna_type,
   rfam.so_rna_type as rfam_model_rna_type,
   pre.so_rna_type as rna_type,
-  hits.sequence_stop,
+  hits.sequence_stop - hits.sequence_start as length,
   score
 from xref
 join rnc_accessions ac on xref.ac = ac.accession
