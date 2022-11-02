@@ -43,9 +43,11 @@ process split_4_labelling {
 process merge_heuristic_labels {
     input:
         path(input_files)
+        path(parquet)
 
     output:
         path("combined.npy.gz")
+        path(parquet)
 
     script:
     """
