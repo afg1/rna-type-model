@@ -1,9 +1,7 @@
-#!/usr/bin/env python
-import click
-import pandas as pd
 import polars as pl
 import numpy as np
-from rna_type.labelling.labels import RNATypeCoarse
+
+from rna_type.label_functions.labels import RNATypeCoarse
 from snorkel.labeling.model import LabelModel
 import joblib
 

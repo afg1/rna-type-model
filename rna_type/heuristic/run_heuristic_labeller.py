@@ -8,7 +8,7 @@ import gzip as gz
 
 
 def run_heuristic_labeller(train_data, output):
-    from ..labelling.coarse_labelling_functions import (
+    from ..label_functions.coarse_labelling_functions import (
         length_based,
         score_based,
         accession_based,
