@@ -9,7 +9,7 @@ include { run_heuristic_labeller; train_label_model; split_4_labelling; merge_he
 
 
 workflow {
-    Channel.fromPath('./preparation/query.sql') \
+    Channel.fromPath('./rna_type/preparation/query.sql') \
     | fetch_data \
     | group_data \
     | preprocess_data \
