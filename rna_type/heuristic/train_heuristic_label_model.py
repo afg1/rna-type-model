@@ -8,10 +8,7 @@ from snorkel.labeling.model import LabelModel
 import joblib
 
 
-@click.command()
-@click.argument("train_data")
-@click.argument("train_labels")
-def train_heuristic_label_model(train_data, train_labels):
+def train_heuristic_label_model(train_data, train_labels, epochs):
     """
     Train a snorkel label model based on the output of the heuristic labelling step
 
@@ -22,7 +19,7 @@ def train_heuristic_label_model(train_data, train_labels):
     df = pl.read_parquet(train_data).to_pandas()
 
     label_model = LabelModel(cardinality=3, verbose=True)
-    label_model.fit(L_train, n_epochs=100, log_freq=10)
+    label_model.fit(L_train, n_epochs=epochs, log_freq=100)
 
     df["label"] = label_model.predict(L=L_train, tie_break_policy="abstain")
 
@@ -30,7 +27,3 @@ def train_heuristic_label_model(train_data, train_labels):
     df_train.to_parquet("LF_labelled_train_data.parquet")
 
     joblib.dump(label_model, "heuristic_LM.joblib")
-
-
-if __name__ == "__main__":
-    train_heuristic_label_model()

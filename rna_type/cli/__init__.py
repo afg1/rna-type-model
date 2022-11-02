@@ -5,6 +5,7 @@ from rna_type.cli import (
     preparation,
     preprocessing,
     labelling,
+    training,
 )
 
 
@@ -16,3 +17,4 @@ def cli():
 cli.add_command(preparation.cli)
 cli.add_command(preprocessing.cli)
 cli.add_command(labelling.cli)
+cli.add_command(training.cli)
