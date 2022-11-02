@@ -3,9 +3,6 @@ import polars as pl
 import click
 
 
-@click.command()
-@click.argument("dump_name")
-@click.argument("output_name")
 def convert_to_parquet(dump_name, output_name):
     """
     Load a csv dump from the database and rewrite it as parquet.
@@ -19,7 +16,3 @@ def convert_to_parquet(dump_name, output_name):
     data = pl.read_csv(dump_name)
     data.write_parquet(output_name)
     print("Conversion finished!")
-
-
-if __name__ == "__main__":
-    convert_to_parquet()
