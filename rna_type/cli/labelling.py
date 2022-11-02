@@ -1,7 +1,7 @@
 import click
 
 from rna_type.heuristic.run_heuristic_labeller import run_heuristic_labeller
-from rna_type.heuristic.split_data_for_labelling import split_into
+from rna_type.heuristic.split_data_for_labelling import split_into, combine_from
 
 
 @click.group("label")
@@ -44,3 +44,18 @@ def lm_labeller(model_file, data_to_label, heuristic_labels, output_file):
     This will run the label model over unlabelled data. Requires you to run the heuristic labeller first
     """
     pass
+
+
+@cli.command("split")
+@click.argument("train_data")
+@click.argument("output_dir")
+@click.option("--chunks", default=100, type=int)
+def split(train_data, output_dir, chunks):
+    split_into(train_data, output_dir, chunks)
+
+
+@cli.command("combine")
+@click.argument("output_name")
+@click.argument("input_files", nargs=-1)
+def combine(output_name, input_files):
+    combine_from(output_name, input_files)
