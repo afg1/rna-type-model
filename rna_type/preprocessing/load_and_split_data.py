@@ -4,7 +4,6 @@ import pandas as pd
 import polars as pl
 import networkx as nx
 import obonet
-import click
 import numpy as np
 
 
@@ -13,10 +12,7 @@ so = obonet.read_obo("so-simple.obo")
 base_so_terms = ["SO:0000655", "SO:0000188", "SO:0000836", "SO:0000673"]
 
 
-@click.command()
-@click.argument("grouped_data", type=click.File("r"))
-@click.option("--rng_seed", type=int)
-def load_and_split(grouped_data, rng_seed=1234):
+def load_and_split(grouped_data, rng_seed):
     """
     Load grouped parquet data and split it into train and test sets.
 
@@ -24,8 +20,11 @@ def load_and_split(grouped_data, rng_seed=1234):
 
     """
     print("Loading pre-grouped data to split for train and test")
-    rng = np.random.default_rng(rng_seed)
-    print(f"Supplied random seed: {rng_seed}")
+    if rng_seed < 0:
+        rng = np.random.default_rng()
+    else:
+        rng = np.random.default_rng(rng_seed)
+    print(f"Supplied random seed: {rng_seed} (iff less than 0, system entropy used)")
 
     all_data = pl.scan_parquet(grouped_data.name)
 
@@ -62,7 +61,3 @@ def load_and_split(grouped_data, rng_seed=1234):
 
     print("Double check below, the two numbers should be equal")
     print(test_data.height + train_data.height, all_data.collect().height)
-
-
-if __name__ == "__main__":
-    load_and_split()
