@@ -21,7 +21,7 @@ process train_label_model {
         path("label_model.joblib")
 
     """
-    run_label_model_training $lf_labelled_data $parquet
+    rtype train heuristic $parquet $lf_labelled_data
     """
 }
 

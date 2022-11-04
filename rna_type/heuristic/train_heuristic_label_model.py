@@ -19,9 +19,9 @@ def train_heuristic_label_model(train_data, train_labels, epochs):
     label_model = LabelModel(cardinality=3, verbose=True)
     label_model.fit(L_train, n_epochs=epochs, log_freq=100)
 
-    df["label"] = label_model.predict(L=L_train, tie_break_policy="abstain")
+    # df["label"] = label_model.predict(L=L_train, tie_break_policy="abstain")
 
-    df_train = df[df.label != RNATypeCoarse.abstain]
-    df_train.to_parquet("LF_labelled_train_data.parquet")
+    # df_train = df[df.label != RNATypeCoarse.abstain]
+    # df_train.to_parquet("LF_labelled_train_data.parquet")
 
     joblib.dump(label_model, "heuristic_LM.joblib")
