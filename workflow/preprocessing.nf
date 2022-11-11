@@ -6,12 +6,24 @@ process fetch_data
         path(data_fetch_query)
 
     output:
-        path('complete_data.parquet')
+        path('complete_data.csv')
 
     script:
     """
     psql -f $data_fetch_query "$PGDATABASE" > complete_data.csv
-    rtype prepare convert complete_data.csv complete_data.parquet
+    """
+}
+
+process convert_data
+{
+    input:
+        path(raw_data)
+    output:
+        path('complete_data.parquet')
+
+    script:
+    """
+    rtype prepare convert $raw_data complete_data.parquet
     """
 }
 
