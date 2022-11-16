@@ -8,5 +8,6 @@ RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && python get-pip.py
 
 RUN curl -sSL https://install.python-poetry.org | python3 -
 
+WORKDIR /rna_type_model
 RUN PATH="$PATH:/root/.local/bin" poetry config virtualenvs.create false
 RUN PATH="$PATH:/root/.local/bin" poetry install
