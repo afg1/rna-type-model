@@ -1,6 +1,9 @@
-from python:3.11-buster
+from python:3.11-bullseye
 
-run apt update && apt upgrade -y && apt install -y g++ postgresql-client cmake
+run apt update && apt install -y -V ca-certificates lsb-release wget
+run wget https://apache.jfrog.io/artifactory/arrow/$(lsb_release --id --short | tr 'A-Z' 'a-z')/apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
+run apt install -y -V ./apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
+run apt update && apt upgrade -y && apt install -y g++ postgresql-client cmake libarrow-dev
 run curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 copy . /rna_type_model
 
