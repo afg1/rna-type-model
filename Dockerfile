@@ -1,6 +1,6 @@
 FROM python:3.10-slim
 
-run apt update && apt upgrade -y && apt install -y g++ postgresql-client
+run apt update && apt upgrade -y && apt install -y g++ postgresql-client curl
 copy . /rna_type_model
 
 WORKDIR /rna_type_model
