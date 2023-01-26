@@ -1,4 +1,4 @@
-FROM python:3.10-buster
+FROM python:3.10-slim
 
 run apt update && apt upgrade -y && apt install -y g++ postgresql-client
 copy . /rna_type_model
